@@ -53,8 +53,14 @@ void SRTF(struct Process processes[], int n) {
   // Calculate average waiting and turnaround time
   float avg_waiting_time = 0, avg_turnaround_time = 0;
   for (int i = 0; i < n; i++) {
-    avg_waiting_time += waiting_time[i];
     avg_turnaround_time += turnaround_time[i];
+  }
+  for (int i = 0; i < n; i++) {
+    if (turnaround_time[i] < processes[i].burst_time) {
+        waiting_time[i] = 0;
+    } else {
+        waiting_time[i] = turnaround_time[i] - processes[i].burst_time;
+    }
   }
   avg_waiting_time /= n;
   avg_turnaround_time /= n;
