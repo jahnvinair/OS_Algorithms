@@ -11,7 +11,8 @@ struct Process {
 int find_shortest_remaining_time(struct Process processes[], int n, int current_time) {
   int index = -1, min_remaining_time = INT_MAX;
   for (int i = 0; i < n; i++) {
-    if (processes[i].arrival_time <= current_time && processes[i].remaining_time < min_remaining_time && processes[i].remaining_time > 0) {
+    if (processes[i].arrival_time <= current_time && processes[i].remaining_time 
+    < min_remaining_time && processes[i].remaining_time > 0) {
       min_remaining_time = processes[i].remaining_time;
       index = i;
     }
@@ -67,7 +68,8 @@ void SRTF(struct Process processes[], int n) {
 
   printf("Process ID\tArrival Time\tBurst Time\tTurnaround Time\tWaiting Time\n");
   for (int i = 0; i < n; i++) {
-    printf("%d\t\t%d\t\t%d\t\t%d\t\t%d\n", processes[i].pid, processes[i].arrival_time, processes[i].burst_time, turnaround_time[i], waiting_time[i]);
+    printf("%d\t\t%d\t\t%d\t\t%d\t\t%d\n", processes[i].pid, processes[i].arrival_time, 
+    processes[i].burst_time, turnaround_time[i], waiting_time[i]);
   }
   printf("Average Waiting Time: %.2f\n", avg_waiting_time);
   printf("Average Turnaround Time: %.2f\n", avg_turnaround_time);
