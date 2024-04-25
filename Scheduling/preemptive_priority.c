@@ -2,9 +2,9 @@
 
 void priority_preemptive(int n, int processes[], int arrival_time[], int burst_time[], int priority[]) {
     int remaining_time[n];
-    int completion_time[n] = {0};
-    int turnaround_time[n] = {0};
-    int wait_time[n] = {0};
+    int completion_time[n];
+    int turnaround_time[n];
+    int wait_time[n];
     int current_time = 0;
     int completed = 0;
 
