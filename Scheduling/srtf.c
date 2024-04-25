@@ -1,91 +1,77 @@
 #include <stdio.h>
-#include <limits.h> // for INT_MAX
 
-struct Process {
-  int pid; // Process ID
-  int arrival_time;
-  int burst_time;
-  int remaining_time;
-};
+void srtf(int processes[], int arrival_time[], int burst_time[], int n) {
+    int remaining_time[n];
+    int completion_time[n];
+    int current_time = 0;
+    int completed = 0;
 
-int find_shortest_remaining_time(struct Process processes[], int n, int current_time) {
-  int index = -1, min_remaining_time = INT_MAX;
-  for (int i = 0; i < n; i++) {
-    if (processes[i].arrival_time <= current_time && processes[i].remaining_time 
-    < min_remaining_time && processes[i].remaining_time > 0) {
-      min_remaining_time = processes[i].remaining_time;
-      index = i;
-    }
-  }
-  return index;
-}
-
-void SRTF(struct Process processes[], int n) {
-  int time = 0, completed = 0;
-  int waiting_time[n], turnaround_time[n];
-
-  for (int i = 0; i < n; i++) {
-    waiting_time[i] = 0;
-    turnaround_time[i] = 0;
-    processes[i].remaining_time = processes[i].burst_time;
-  }
-
-  while (completed != n) {
-    int shortest_process = find_shortest_remaining_time(processes, n, time);
-
-    if (shortest_process == -1) {
-      // No process ready to execute (all haven't arrived yet or finished)
-      time++;
-      continue;
+    for (int i = 0; i < n; i++) {
+        remaining_time[i] = burst_time[i];
+        completion_time[i] = 0;
     }
 
-    processes[shortest_process].remaining_time--;
+    while (completed != n) {
+        int shortest_job = -1;
+        int shortest_time = 99999;
 
-    if (processes[shortest_process].remaining_time == 0) {
-      completed++;
-      turnaround_time[shortest_process] = time - processes[shortest_process].arrival_time;
-      waiting_time[shortest_process] = turnaround_time[shortest_process] - processes[shortest_process].burst_time;
+        for (int i = 0; i < n; i++) {
+            if (arrival_time[i] <= current_time && remaining_time[i] < shortest_time && remaining_time[i] > 0) {
+                shortest_time = remaining_time[i];
+                shortest_job = i;
+            }
+        }
+
+        if (shortest_job == -1) {
+            current_time++;
+        } else {
+            remaining_time[shortest_job]--;
+            current_time++;
+
+            if (remaining_time[shortest_job] == 0) {
+                completed++;
+                completion_time[shortest_job] = current_time;
+            }
+        }
     }
 
-    // Context switching overhead (optional)
-    time++;
-  }
-
-  // Calculate average waiting and turnaround time
-  float avg_waiting_time = 0, avg_turnaround_time = 0;
-  for (int i = 0; i < n; i++) {
-    avg_turnaround_time += turnaround_time[i];
-  }
-  for (int i = 0; i < n; i++) {
-    if (turnaround_time[i] < processes[i].burst_time) {
-        waiting_time[i] = 0;
-    } else {
-        waiting_time[i] = turnaround_time[i] - processes[i].burst_time;
+    // Calculate turnaround time and wait time
+    int total_turnaround_time = 0, total_wait_time = 0;
+    printf("Process\tArrival Time\tBurst Time\tCompletion Time\tTurnaround Time\tWait Time\n");
+    for (int i = 0; i < n; i++) {
+        int turnaround_time = completion_time[i] - arrival_time[i];
+        int wait_time = turnaround_time - burst_time[i];
+        total_turnaround_time += turnaround_time;
+        total_wait_time += wait_time;
+        printf("%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t\t%d\n", processes[i], arrival_time[i], burst_time[i], completion_time[i], turnaround_time, wait_time);
     }
-  }
-  avg_waiting_time /= n;
-  avg_turnaround_time /= n;
 
-  printf("Process ID\tArrival Time\tBurst Time\tTurnaround Time\tWaiting Time\n");
-  for (int i = 0; i < n; i++) {
-    printf("%d\t\t%d\t\t%d\t\t%d\t\t%d\n", processes[i].pid, processes[i].arrival_time, 
-    processes[i].burst_time, turnaround_time[i], waiting_time[i]);
-  }
-  printf("Average Waiting Time: %.2f\n", avg_waiting_time);
-  printf("Average Turnaround Time: %.2f\n", avg_turnaround_time);
+    // Calculate and display average turnaround time and average wait time
+    float avg_turnaround_time = (float)total_turnaround_time / n;
+    float avg_wait_time = (float)total_wait_time / n;
+    printf("\nAverage Turnaround Time: %.2f\n", avg_turnaround_time);
+    printf("Average Wait Time: %.2f\n", avg_wait_time);
 }
 
 int main() {
-  int n;
-  printf("Enter the number of processes: ");
-  scanf("%d", &n);
+    int n;
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
 
-  struct Process processes[n];
-  for (int i = 0; i < n; i++) {
-    printf("Enter process ID, arrival time, and burst time for process %d: ", i + 1);
-    scanf("%d %d %d", &processes[i].pid, &processes[i].arrival_time, &processes[i].burst_time);
-  }
+    int processes[n];
+    int arrival_time[n];
+    int burst_time[n];
 
-  SRTF(processes, n);
-  return 0;
+    printf("Enter arrival time and burst time for each process:\n");
+    for (int i = 0; i < n; i++) {
+        printf("Process %d Arrival Time: ", i + 1);
+        scanf("%d", &arrival_time[i]);
+        printf("Process %d Burst Time: ", i + 1);
+        scanf("%d", &burst_time[i]);
+        processes[i] = i + 1; // Process IDs
+    }
+
+    srtf(processes, arrival_time, burst_time, n);
+
+    return 0;
 }
