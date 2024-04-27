@@ -3,8 +3,8 @@
 #include <stdlib.h>
 
 // Function prototypes
-bool isSafe(int available[], int maxm[][3], int allocation[][3], int numProcesses, int numResources);
-int findAvailableProcess(int available[], int maxm[][3], int allocation[][3], int numProcesses, int numResources);
+bool isSafe(int available[], int maxm[][3], int allocation[][3], int need[][3], int numProcesses, int numResources);
+int findAvailableProcess(int available[], int need[][3], int numProcesses, int numResources);
 
 int main() {
     int numProcesses, numResources;
@@ -37,7 +37,15 @@ int main() {
         }
     }
 
-    if (isSafe(available, maxm, allocation, numProcesses, numResources)) {
+    int (*need)[numResources] = malloc(numProcesses * numResources * sizeof(int));
+    // Calculate the need matrix
+    for (int i = 0; i < numProcesses; i++) {
+        for (int j = 0; j < numResources; j++) {
+            need[i][j] = maxm[i][j] - allocation[i][j];
+        }
+    }
+
+    if (isSafe(available, maxm, allocation, need, numProcesses, numResources)) {
         printf("The system is in a safe state.\n");
     } else {
         printf("The system is in an unsafe state and may lead to a deadlock.\n");
@@ -45,11 +53,12 @@ int main() {
 
     free(maxm);
     free(allocation);
+    free(need);
 
     return 0;
 }
 
-bool isSafe(int available[], int maxm[][3], int allocation[][3], int numProcesses, int numResources) {
+bool isSafe(int available[], int maxm[][3], int allocation[][3], int need[][3], int numProcesses, int numResources) {
     int work[numResources]; // Work vector
     bool *finish = calloc(numProcesses, sizeof(bool)); // Finish vector
     int safeSequence[numProcesses]; // Safe sequence
@@ -63,7 +72,7 @@ bool isSafe(int available[], int maxm[][3], int allocation[][3], int numProcesse
     // Find safe sequence
     while (count < numProcesses) {
         bool found = false;
-        int processIndex = findAvailableProcess(work, maxm, allocation, numProcesses, numResources);
+        int processIndex = findAvailableProcess(work, need, numProcesses, numResources);
 
         if (processIndex != -1) {
             for (int i = 0; i < numResources; i++) {
@@ -95,11 +104,11 @@ bool isSafe(int available[], int maxm[][3], int allocation[][3], int numProcesse
     return isSafe;
 }
 
-int findAvailableProcess(int available[], int maxm[][3], int allocation[][3], int numProcesses, int numResources) {
+int findAvailableProcess(int available[], int need[][3], int numProcesses, int numResources) {
     for (int i = 0; i < numProcesses; i++) {
         bool canAllocate = true;
         for (int j = 0; j < numResources; j++) {
-            if (maxm[i][j] - allocation[i][j] > available[j]) {
+            if (need[i][j] > available[j]) {
                 canAllocate = false;
                 break;
             }
