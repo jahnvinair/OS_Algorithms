@@ -1,65 +1,79 @@
 #include <stdio.h>
-#include <limits.h>
+#include <stdlib.h>
 
-int checkHit(int incomingPage, int queue[], int occupied){
-for(int i = 0; i < occupied; i++){
-if(incomingPage == queue[i])
-return 1;
-}
-return 0;
-}
+#define N 10
 
-void printFrame(int queue[], int occupied)
-{
-for(int i = 0; i < occupied; i++)
-printf("%d\t\t\t" ,queue[i]);
-}
 int main()
 {
-int incomingStream[] = {1, 2, 3, 2, 1, 5, 2, 1, 6, 2, 5, 6, 3, 1, 3};
-int n = sizeof(incomingStream)/sizeof(incomingStream[0]);
-int frames = 3;
-int queue[n];
-int distance[n];
-int occupied = 0;
-int pagefault = 0;
-printf("Page\t Frame1 \t Frame2 \t Frame3\n");
-for(int i = 0; i < n; i++) 
-{
-printf("%d: \t\t", incomingStream[i]);
-if(checkHit(incomingStream[i], queue, occupied)){
-printFrame(queue, occupied);
-}
-else if(occupied < frames){
-queue[occupied] = incomingStream[i];
-pagefault++;
-occupied++;
-printFrame(queue, occupied);
-}
-else{
-int max = INT_MIN;
-int index;
-for (int j = 0; j < frames; j++)
-{
-distance[j] = 0;
-for(int k = i - 1; k >= 0; k--)
-{
-++distance[j];
-if(queue[j] == incomingStream[k])
-break;
-}
-if(distance[j] > max){
-max = distance[j];
-index = j;
-}
-}
-queue[index] = incomingStream[i];
-printFrame(queue, occupied);
-pagefault++;
-}
+    int frames, i, j, k, l, flag, count = 0, faults = 0;
+    int *queue, *counter, *referenceString;
+    int *frame, *next;
 
-printf("\n");
-}
-printf("Page Faults: %d", pagefault);
-return 0;
+    printf("Enter number of frames : ");
+    scanf("%d", &frames);
+
+    queue = (int *)malloc(frames * sizeof(int));
+    counter = (int *)calloc(N, sizeof(int));
+    referenceString = (int *)malloc(N * sizeof(int));
+    frame = (int *)malloc(frames * sizeof(int));
+    next = (int *)malloc(frames * sizeof(int));
+
+    printf("Enter reference string : ");
+    for (i = 0; i < N; i++)
+        scanf("%d", &referenceString[i]);
+
+    for (i = 0; i < frames; i++)
+    {
+        queue[i] = -1;
+        frame[i] = -1;
+        next[i] = i;
+    }
+
+    for (i = 0; i < N; i++)
+    {
+        flag = 0;
+        for (j = 0; j < frames; j++)
+        {
+            if (queue[j] == referenceString[i])
+            {
+                flag = 1;
+                counter[j] = i;
+                break;
+            }
+        }
+
+        if (flag == 0)
+        {
+            if (count < frames)
+            {
+                queue[count] = referenceString[i];
+                frame[count] = i;
+                counter[count] = i;
+                count++;
+                faults++;
+            }
+            else
+            {
+                l = next[0];
+                k = 0;
+                for (j = 1; j < frames; j++)
+                {
+                    if (counter[j] < counter[k])
+                    {
+                        k = j;
+                        l = next[j];
+                    }
+                }
+                queue[l] = referenceString[i];
+                frame[l] = i;
+                counter[l] = i;
+                next[k] = l;
+                faults++;
+            }
+        }
+    }
+
+    printf("Page Faults : %d", faults);
+
+    return 0;
 }
